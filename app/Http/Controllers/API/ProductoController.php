@@ -5,7 +5,9 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Modelos\Productos;
-use App\Mail\Email\Correos;
+use Illuminate\Database\Eloquent\Scope; 
+use App\User;
+use App\Mail\Email\Productomail;
 use Illuminate\Support\Facades\Mail;
 
 
@@ -18,33 +20,98 @@ class ProductoController extends Controller
     }
 
     public function guardar(Request $request){
-        $producto = new Productos();
-        $producto->nombre = $request->nombre;
-        $producto->descripcion = $request->descripcion;
+        if ($request->user()->tokenCan('admin')) {
+                $producto = new Productos();
+                $producto->nombre = $request->nombre;
+                $producto->descripcion = $request->descripcion;
 
-        $correo = Mail::to('anguianoraul045@gmail.com')->send(new Correos());
-        if($producto->save())
-            return response()->json(["productos"=>$producto],201);
-            return response()->json(["Correo"=>$correo,"producto creado:"->nombre],200);
-        return response()->json(null,400);
+                $usuario = $request->user()['name'];
+                $correoelec = $request->user()['email']; 
+             if($producto->save()){
+                    $elcorreo=[ 
+                        'usuario'=>$usuario,
+                        'name'=>$producto->nombre,
+                        'descripcion'=>$producto->descripcion,
+                    ];
+                    $correo = Mail::to('19170038@utt.edu.mx')->send(new Productomail($elcorreo));
+                    return response()->json(["Correo"=>$correo,"Producto"=>$producto],201); 
+                }else {
+                    $informacionActalizada=[
+                        'username'=>$usuario,
+                        'email'=>$email,
+                        'proceso'=>"intento fallido de insercion de productos nuevos"
 
-        $correo = Mail::to('anguianoraul045@gmail.com')->send(new Correos());
+                    ];
+                    Mail::to('19170038@utt.edu.mx')
+                    ->send(new Productomail($elcorreo));
+            }
+            
+        }elseif ($request->user()->tokenCan('user')) {
+            $usuario = $request->user()['name'];
+            $correoelec = $request->user()['email'];
+            $accion="A causa de falta de permisos";
+            
+            $elcorreo=[
+                'usuario'=>$usuario,
+                'email'=>$correoelec,
+                'accion'=>$accion
+            ];
+            Mail::to('19170038@utt.edu.mx')
+                ->send(new Productomail($elcorreo));
+        }else {
+            abort(401,"lo sentimos ");
+        } 
         
     }
-    public function Cambiar(Request $request, $id){
-        $actualizardatos = new Productos();
-        $actualizardatos = Productos::find($id);
-        $actualizardatos->nombre = $request->get("nombre");
-        $actualizardatos->save();
-        return response()->json(["productos"=>$actualizardatos],201);
-        return response()->json(null,400);
+    public function Cambiar(Request $request, $id){ 
+        if ($request->user()->tokenCan('admin')) {
+                $actualizardatos = new Productos();
+                $actualizardatos = Productos::find($id);
+                $actualizardatos->nombre = $request->get("nombre");
+                $actualizardatos->save();
+
+                $usuario = $request->user()['name'];
+                $correoelec = $request->user()['email']; 
+                if($producto->save()){
+                    $elcorreo=[ 
+                        'usuario'=>$usuario,
+                        'name'=>$actualizardatos->nombre,
+                        'descripcion'=>$actualizardatos->descripcion,
+                    ];
+                    $correo = Mail::to('19170038@utt.edu.mx')->send(new Productomail($elcorreo));
+                    return response()->json(["Correo"=>$correo,"Producto actulizado"=>$actualizardatos],201); 
+                }else {
+                    $informacionActalizada=[
+                        'username'=>$usuario,
+                        'email'=>$email,
+                        'proceso'=>"intento fallido de insercion de productos nuevos"
+
+                    ];
+                    Mail::to('19170038@utt.edu.mx')
+                    ->send(new Productomail($elcorreo));
+        }
+    }elseif ($request->user()->tokenCan('user')) {
+            
+        $usuario = $request->user()['name'];
+        $correoelec = $request->user()['email'];
+        $accion="A causa de falta de permisos";
+        
+        $elcorreo=[
+            'usuario'=>$usuario,
+            'email'=>$correoelec,
+            'accion'=>$accion
+        ];
+        Mail::to('19170038@utt.edu.mx')
+            ->send(new Productomail($elcorreo));
+    }
 
     }
     public function Eliminar($id){
-        $quitar = new Productos();
-        $quitar = Productos::find($id);
-        $quitar->delete();
-
-        return response()->json(["productos"=>Productos::all()],200);
+        if ($request->user()->tokenCan('admin')) {
+            $quitar = new Productos();
+            $quitar = Productos::find($id);
+            $quitar->delete();
+            return response()->json(["productos"=>Productos::all()],200);
+        }
     }
 }

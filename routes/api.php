@@ -19,15 +19,15 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 /*Apartado para los Productos*/
 Route::get("/productos/{id?}", "API\ProductoController@index")->where("id","[0-9]+");
-Route::post("/productos","API\ProductoController@guardar");
-Route::put("/productos/{id?}", "API\ProductoController@Cambiar")->where("id","[0-9]+");
-Route::delete("/productos/{id?}", "API\ProductoController@Eliminar")->where("id","[0-9]+");
+Route::middleware('auth:sanctum')->post("/productos","API\ProductoController@guardar");
+Route::middleware('auth:sanctum')->put("/productos/{id?}", "API\ProductoController@Cambiar")->where("id","[0-9]+");
+Route::middleware('auth:sanctum')->delete("/productos/{id?}", "API\ProductoController@Eliminar")->where("id","[0-9]+");
 
 /*Apartado para los comentarios*/
 Route::get("/comentarios/{id?}", "API\ComentarioController@mostrar")->where("id","[0-9]+");
-Route::post("/comentarios","API\ComentarioController@guardarC");
-Route::put("/comentarios/{id?}","API\ComentarioController@CambiarCom")->where("id","[0-9]+");
-Route::delete("/comentarios/{id?}","API\ComentarioController@EliminarCom")->where("id","[0-9]+");
+Route::middleware('auth:sanctum')->post("/comentarios","API\ComentarioController@guardarC");
+Route::middleware('auth:sanctum')->put("/comentarios/{id?}","API\ComentarioController@CambiarCom")->where("id","[0-9]+");
+Route::middleware('auth:sanctum')->delete("/comentarios/{id?}","API\ComentarioController@EliminarCom")->where("id","[0-9]+");
 
 /*Apartado para los usuarios*/
 Route::get("/users/{id?}", "API\UserController@MostrarUser")->where("id","[0-9]+");
@@ -46,7 +46,10 @@ Route::middleware('auth:sanctum')->delete('Salir', 'APIAuth\AuthController@Salir
 Route::middleware('auth:sanctum')->post('permisos', 'APIAuth\AuthController@darpermisos');
 
 /*Las Rutas*/
-Route::post('login', 'APIAuth\AuthController@entrar');
+Route::post('login', 'APIAuth\AuthController@entrarAd');
+
+Route::post('loginUser', 'APIAuth\AuthController@entrarU');
+
 Route::post('registro', 'APIAuth\AuthController@regis');
 
 /*Correos*/

@@ -8,6 +8,8 @@ use App\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\MessageBag;
+use App\Mail\Email\Correos;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
@@ -21,7 +23,7 @@ class AuthController extends Controller
     public function Salir(Request $request){
         return response()->json(["Afectados" => $request->user()->tokens()->delete()], 201);
     }
-    public function entrar(Request $request){
+    public function entrarAd(Request $request){
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
@@ -35,7 +37,24 @@ class AuthController extends Controller
             ]);
         }
 
-        $token = $user->createToken($request->email, ['user:info','admin:admin'])->plainTextToken;
+        $token = $user->createToken($request->email, ['admin'])->plainTextToken;
+        return response()->json(["token" => $token], 201);
+    }
+    public function entrarU(Request $request){
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if(!$user || !Hash::check($request->password, $user->password)){
+            throw ValidationException::withMessages([
+                'email'|'password' => ['Credenciales incorrectas :(']
+            ]);
+        }
+
+        $token = $user->createToken($request->email, ['user'])->plainTextToken;
         return response()->json(["token" => $token], 201);
     }
     public function regis(Request $request){
@@ -50,13 +69,22 @@ class AuthController extends Controller
         $user->email = $request->email;
         $user->password = Hash::make($request->password);
 
+
         if($user->save())
-            return response()->json($user, 200);
-        
-        return abort(422, "Fallo al registrar");
+            $elcorreo=[
+                'nombre'=>$user->name,
+                'email'=>$user->email,
+                'password'=>$user->password,
+
+                'URL'=>url("/api/AuthController@login")
+            ];
+            $correo=Mail::to($user->email)
+                    ->send(new Correos($elcorreo));
+            
+             return response()->json(["Correo"=>$correo,"personas"=>$user],200);
     }
     public function darpermisos(Request $request){
-        if($request->user()->tokenCan('admin:admin'))
+        if($request->user()->tokenCan('admin'))
            $request->validate([
             'email'=>'required|email'
         ]);
@@ -65,7 +93,7 @@ class AuthController extends Controller
             throw ValidationException::withMessages([
                 'email'=>["El usuario no es correcto. Verifica tus datos"],
             ]);
-            $token = $user->createToken($request->email, ['user:edit'])->plainTextToken;
+            $token = $user->createToken($request->email, ['user'])->plainTextToken;
             return response()->json(["token"=>$token],201);
         }
     }

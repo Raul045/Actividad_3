@@ -27,7 +27,7 @@ class MailsController extends Controller
         ],
         'Subject' => "¡¡¡Activa tu cuenta!!!",
         'TextPart' => "Bienvenido al equipo",
-        'HTMLPart' => "<h3>¡¡Hey!! Bienvenido entra a <a href='APIAuth\AuthController@entrar'>login</a>!</h3><br />Esperamos trabajar contigo",
+        'HTMLPart' => "<h3>¡¡Hey!! Bienvenido entra a <a href='APIAuth\AuthController@entrar'></a>!</h3><br />Esperamos trabajar contigo",
         'CustomID' => "AppGettingStartedTest"
       ]
     ]

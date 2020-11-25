@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class Correos extends Mailable
+class Comentariomail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -29,8 +29,7 @@ class Correos extends Mailable
      */
     public function build()
     {
-        
         return $this->from('19170038@uttcampus.edu.mx')
-                    ->view('Correovista');
+                    ->view('Comentarios');
     }
 }

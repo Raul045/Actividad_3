@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 class CorreoController extends Controller
 {
     public function EnviarCorreo(){
-        $correo = Mail::to('anguianoraul045@gmail.com')->send(new Correos());
+        $correo = Mail::to('19170038@uttcampus.edu.mx')->send(new Correos());
         return response()->json(["Correo"=>$correo],200);
     }
 }
